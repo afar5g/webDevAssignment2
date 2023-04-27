@@ -1,14 +1,16 @@
 require("./utils.js");
 require("dotenv").config();
 
-const express = require('express');
-const session = require('express-session');
-const MongoStore = require('connect-mongo');
-const bcrypt = require('bcrypt');
-const Joi = require("joi");
+const express = require("express");
+const session = require("express-session");
+const MongoStore = require("connect-mongo");
+const bcrypt = require("bcrypt");
+
+const port = process.env.PORT || 3000;
 
 const app = express();
-const port = process.env.PORT || 3000;
+
+const Joi = require("joi");
 
 const expireTime = 24 * 60 * 60 * 1000; // 1 day expiration
 
@@ -36,7 +38,7 @@ var mongoStore = MongoStore.create({
 
 app.use(session({ 
     secret: node_session_secret,
-	store: mongoStore, // memory store is the defaalt value
+	store: mongoStore, // memory store is the default value
 	saveUninitialized: false, 
 	resave: true
 }
@@ -68,12 +70,12 @@ app.get('/nosql-injection', async (req,res) => {
     res.send(`<h1>Hello ${username}</h1>`);
 });
 
-app.get('/about', (req,res) => {
+app.get('/about', (req, res) => {
     var color = req.query.color;
-    res.send("<h1 style='color:"+color+";'>Patrick Guichon</h1>");
+    res.send("<h1 style='color:"+color+";'>Ali Farahani</h1>");
 });
 
-app.get('/contact', (req,res) => {
+app.get('/contact', (req, res) => {
     var missingEmail = req.query.missing;
     var html = `
         email address:
@@ -88,7 +90,7 @@ app.get('/contact', (req,res) => {
     res.send(html);
 });
 
-app.post('/submitEmail', (req,res) => {
+app.post('/submitEmail', (req, res) => {
     var email = req.body.email;
     if (!email) {
         res.redirect('/contact?missing=1');
@@ -99,7 +101,7 @@ app.post('/submitEmail', (req,res) => {
 });
 
 
-app.get('/createUser', (req,res) => {
+app.get('/createUser', (req, res) => {
     var html = `
     create user
     <form action='/submitUser' method='post'>
@@ -112,7 +114,7 @@ app.get('/createUser', (req,res) => {
 });
 
 
-app.get('/login', (req,res) => {
+app.get('/login', (req, res) => {
     var html = `
     log in
     <form action='/loggingin' method='post'>
@@ -124,7 +126,7 @@ app.get('/login', (req,res) => {
     res.send(html);
 });
 
-app.post('/submitUser', async (req,res) => {
+app.post('/submitUser', async (req, res) => {
     var username = req.body.username;
     var password = req.body.password;
 
@@ -150,7 +152,7 @@ app.post('/submitUser', async (req,res) => {
     res.send(html);
 });
 
-app.post('/loggingin', async (req,res) => {
+app.post('/loggingin', async (req, res) => {
     var username = req.body.username;
     var password = req.body.password;
 
@@ -186,7 +188,7 @@ app.post('/loggingin', async (req,res) => {
 	}
 });
 
-app.get('/loggedin', (req,res) => {
+app.get('/loggedin', (req, res) => {
     if (!req.session.authenticated) {
         res.redirect('/login');
     }
@@ -196,7 +198,7 @@ app.get('/loggedin', (req,res) => {
     res.send(html);
 });
 
-app.get('/logout', (req,res) => {
+app.get('/logout', (req, res) => {
 	req.session.destroy();
     var html = `
     You are logged out.
@@ -205,7 +207,7 @@ app.get('/logout', (req,res) => {
 });
 
 
-app.get('/cat/:id', (req,res) => {
+app.get('/cat/:id', (req, res) => {
 
     var cat = req.params.id;
 
@@ -220,14 +222,13 @@ app.get('/cat/:id', (req,res) => {
     }
 });
 
-
 app.use(express.static(__dirname + "/public"));
 
-app.get("*", (req,res) => {
+app.get("*", (req, res) => {
 	res.status(404);
 	res.send("Page not found - 404");
 })
 
 app.listen(port, () => {
-	console.log("Node application listening on port "+port);
+	console.log("Node application listening on port " + port);
 }); 
