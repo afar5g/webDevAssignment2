@@ -204,7 +204,7 @@ app.post('/loggingin', async (req, res) => {
 app.get('/members', (req, res) => {
     if (req.session.authenticated) {
         let randNum = Math.floor(Math.random() * 3); // random num from 0 to 2
-        let images = ["fluffy.gif", "socks.gif", "marble.jpeg"];
+        let images = ["pearl.png", "socks.gif", "marble.jpeg"];
         let randImg = images[randNum];
 
         res.send(`
