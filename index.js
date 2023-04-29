@@ -12,7 +12,7 @@ const app = express();
 
 const Joi = require("joi");
 
-const expireTime = 24 * 60 * 60 * 1000; // 1 day expiration
+const expireTime = 1 * 60 * 60 * 1000; // 1 hour expiration
 
 // secret info
 const mongodb_host = process.env.MONGODB_HOST;
@@ -79,6 +79,8 @@ app.get('/nosql-injection', async (req, res) => {
 
 	const result = await userCollection.find({email: email}).project({email: 1, name: 1, password: 1, _id: 1}).toArray();
 	console.log(result);
+
+    res.redirect("/members");
 });
 
 app.get('/about', (req, res) => {
@@ -196,7 +198,7 @@ app.post('/loggingin', async (req, res) => {
 	} else {
 		console.log("incorrect password");
 		res.send(`
-        Invalid email/password combination.<br/>
+        Invalid password.<br/>
         <br/>
         <a href="/login">Try again</a>
         `)
