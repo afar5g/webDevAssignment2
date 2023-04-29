@@ -99,9 +99,10 @@ app.get('/signup', (req, res) => {
 app.get('/login', (req, res) => {
     res.send(`
     Log In:
-    <form action='/loggingin' method='post'>
-    <input name='email' type='email' placeholder='email'>
-    <input name='password' type='password' placeholder='password'>
+    <form action='/loggingin' method='post'><br/>
+    <input name='email' type='email' placeholder='email'><br/>
+    <input name='password' type='password' placeholder='password'><br/>
+    <br/>
     <button>Submit</button>
     </form>
     `);
