@@ -44,6 +44,7 @@ app.use(
         resave: true
     }
 ));
+app.set('view engine', 'ejs');
 
 app.get('/', async (req, res) => {
     if (!req.session.authenticated) {
@@ -83,11 +84,6 @@ app.get('/nosql-injection', async (req, res) => {
     res.redirect("/members");
 });
 
-app.get('/about', (req, res) => {
-    var color = req.query.color;
-    res.send("<h1 style='color:" + color + ";'>Ali Farahani</h1>");
-});
-
 app.get('/signup', (req, res) => {
     res.send(`
     Sign Up:
@@ -104,9 +100,10 @@ app.get('/signup', (req, res) => {
 app.get('/login', (req, res) => {
     res.send(`
     Log In:
-    <form action='/loggingin' method='post'>
-    <input name='email' type='email' placeholder='email'>
-    <input name='password' type='password' placeholder='password'>
+    <form action='/loggingin' method='post'><br/>
+    <input name='email' type='email' placeholder='email'><br/>
+    <input name='password' type='password' placeholder='password'><br/>
+    <br/>
     <button>Submit</button>
     </form>
     `);
@@ -209,7 +206,7 @@ app.post('/loggingin', async (req, res) => {
 app.get('/members', (req, res) => {
     if (req.session.authenticated) {
         let randNum = Math.floor(Math.random() * 3); // random num from 0 to 2
-        let images = ["fluffy.gif", "socks.gif", "marble.jpeg"];
+        let images = ["pearl.png", "socks.gif", "marble.jpeg"];
         let randImg = images[randNum];
 
         res.send(`
