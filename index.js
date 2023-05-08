@@ -219,8 +219,8 @@ app.get("/logout", (req, res) => {
 });
 
 app.get("/admin", sessionValidation, adminAuthorization, async (req, res) => {
-    const result = await userCollection.find().project({email: 1, name: 1, userType: 1, _id: 1});
-    res.render("admin", {users: result, test: result.length});
+    const result = await userCollection.find().project({email: 1, name: 1, userType: 1, _id: 1}).toArray();
+    res.render("admin", {users: result});
 });
 
 app.get("/promoteUser", adminAuthorization, (req, res) => {
