@@ -131,6 +131,7 @@ app.post("/submitUser", async (req, res) => {
 
     if (emptyField != null) {
         res.render("errorMessage", {error: `${emptyField} is required.`});
+        return;
     }
 
 	const schema = Joi.object({
