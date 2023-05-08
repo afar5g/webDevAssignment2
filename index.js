@@ -142,8 +142,6 @@ app.post("/submitUser", async (req, res) => {
 	const validationResult = schema.validate({email, name, password});
 	if (validationResult.error != null) {
 	   console.log(validationResult.error);
-	   res.redirect("/signup");
-	   return;
     }
     
     var hashedPassword = await bcrypt.hash(password, saltRounds);
