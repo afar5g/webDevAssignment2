@@ -1,6 +1,11 @@
 <%- include("templates/header") %>
-    <h1 style="color:red">Error!</h1>
-    <br>
-    <br>
-    <h3><%= error %></h3>
+
+<h1 style="color:red">Error!</h1>
+<br>
+<br>
+<h3><%= error %></h3>
+<br>
+<br>
+<button class="btn btn-primary rounded-pill px-3" onclick="history.back()">Go back</button>
+
 <%- include("templates/footer") %>

@@ -87,7 +87,7 @@ app.get("/nosql-injection", async (req, res) => {
 	var email = req.query.email;
 
 	if (!email) {
-		res.send(`<h3>no email provided - try /nosql-injection?user=email</h3> <h3>or /nosql-injection?user[$ne]=email</h3>`);
+		res.render("errorMessage", {error: "No email provided - try /nosql-injection?user=email or /nosql-injection?user[$ne]=email"});
 		return;
 	}
 	console.log("email: " + email);
@@ -95,7 +95,7 @@ app.get("/nosql-injection", async (req, res) => {
 	const validationResult = schema.validate(email);
 	if (validationResult.error != null) {  
 	   console.log(validationResult.error);
-	   res.send("<h1 style='color:darkred;'>A NoSQL injection attack was detected!!</h1>");
+	   res.render("errorMessage", {error: "A NoSQL injection attack was detected!!"});
 	   return;
 	}
 
@@ -225,10 +225,12 @@ app.get("/admin", sessionValidation, adminAuthorization, async (req, res) => {
 
 app.get("/promoteUser", adminAuthorization, (req, res) => {
     userCollection.updateOne({email: req.query.email}, {$set: {userType: "admin"}});
+    res.redirect("/admin");
 });
 
 app.get("/demoteUser", adminAuthorization, (req, res) => {
     userCollection.updateOne({email: req.query.email}, {$set: {userType: "user"}});
+    res.redirect("/admin");
 });
 
 app.use(express.static(__dirname + "/public"));
