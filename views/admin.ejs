@@ -1,9 +1,8 @@
 <%- include("templates/header") %>
 
 <h1>Users</h1>
+<%= users.length %>
 <ul>
-    <%= users.length %>
-
     <% for (let i = 0; i < users.length; i++) { %>
         <%- include("templates/user", {user: users[i]}) %>
     <% } %>
