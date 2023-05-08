@@ -68,7 +68,7 @@ function adminAuthorization(req, res, next) {
         next();
     } else {
         res.status(403);
-        res.render("errorMessage", {error: "Not Authorized"});
+        res.render("errorMessage", {error: "403 Error - Not Authorized"});
         return;
     }
 }
