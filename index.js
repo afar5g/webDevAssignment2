@@ -76,6 +76,7 @@ function adminAuthorization(req, res, next) {
 app.use("/", (req, res, next) => {
     app.locals.navLinks = navLinks;
     app.locals.currentURL = url.parse(req.url).pathname;
+    next();
 });
 
 app.get("/", async (req, res) => {
