@@ -130,11 +130,7 @@ app.post("/submitUser", async (req, res) => {
     }
 
     if (emptyField != null) {
-        res.send(`
-        ${emptyField} is required.
-        <br/><br/>
-        <a href="/signup">Try again</a>
-        `)
+        res.render("errorMessage", {error: `${emptyField} is required.`});
     }
 
 	const schema = Joi.object({
@@ -181,11 +177,7 @@ app.post("/loggingin", async (req, res) => {
 	console.log(result);
 	if (result.length != 1) {
 		console.log("user not found");
-		res.send(`
-        User not found.<br/>
-        <br/>
-        <a href="/login">Try again</a>
-        `)
+		res.render("errorMessage", {error: "User not found."});
 		return;
 	}
 	if (await bcrypt.compare(password, result[0].password)) {
@@ -200,11 +192,7 @@ app.post("/loggingin", async (req, res) => {
 		return;
 	} else {
 		console.log("incorrect password");
-		res.send(`
-        Invalid password.<br/>
-        <br/>
-        <a href="/login">Try again</a>
-        `)
+		res.render("errorMessage", {error: "Invalid password"});
 		return;
 	}
 });
