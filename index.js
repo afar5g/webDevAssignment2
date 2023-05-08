@@ -213,13 +213,17 @@ app.get("/admin", sessionValidation, adminAuthorization, async (req, res) => {
 
 app.get("/promoteUser", adminAuthorization, (req, res) => {
     userCollection.updateOne({email: req.query.email}, {$set: {userType: "admin"}});
-    req.session.userType = "admin";
+    if (req.session.email == req.query.email) {
+        req.session.userType = "admin";
+    }
     res.redirect("/admin");
 });
 
 app.get("/demoteUser", adminAuthorization, (req, res) => {
     userCollection.updateOne({email: req.query.email}, {$set: {userType: "user"}});
-    req.session.userType = "user";
+    if (req.session.email == req.query.email) {
+        req.session.userType = "user";
+    }
     res.redirect("/admin");
 });
 
