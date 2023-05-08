@@ -2,10 +2,8 @@
 
 <h1>Users</h1>
 <ul>
-    <script>
-        console.log(<%= users.length %>);
-    </script>
-    
+    <%= users.length %>
+
     <% for (let i = 0; i < users.length; i++) { %>
         <%- include("templates/user", {user: users[i]}) %>
     <% } %>
