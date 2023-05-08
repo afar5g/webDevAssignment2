@@ -3,6 +3,7 @@ require("dotenv").config();
 
 const express = require("express");
 const session = require("express-session");
+const url = require("url");
 const MongoStore = require("connect-mongo");
 const bcrypt = require("bcrypt");
 
@@ -27,6 +28,16 @@ const saltRounds = 12;
 var {database} = include("databaseConnection");
 const userCollection = database.db(mongodb_database).collection("users");
 
+const navLinks = [
+    {name: "Home", link: "/"},
+    {name: "Cats", link: "/cats"},
+    {name: "Login", link: "/login"},
+    {name: "Admin", link: "/admin"},
+    {name: "404", link: "/dne"},
+]
+
+app.set('view engine', 'ejs');
+
 app.use(express.urlencoded({extended: false}));
 
 var mongoStore = MongoStore.create({
@@ -36,33 +47,42 @@ var mongoStore = MongoStore.create({
 	}
 })
 
-app.use(
-    session({ 
-        secret: node_session_secret,
-        store: mongoStore, // memory store is the default value
-        saveUninitialized: false, 
-        resave: true
-    }
-));
-app.set('view engine', 'ejs');
+app.use(session({ 
+    secret: node_session_secret,
+    store: mongoStore, // memory store is the default value
+    saveUninitialized: false, 
+    resave: true
+}));
 
-app.get('/', async (req, res) => {
-    if (!req.session.authenticated) {
-        res.send(`
-        <button onclick="location.href='/signup';">Sign up</button>
-        <button onclick="location.href='/login';">Log in</button>
-        `);
+// middleware functions
+function sessionValidation(req, res, next) {
+    if (req.session.authenticated) {
+        next();
     } else {
-        const name = req.session.name;
-        res.send(`
-        Hello, ${name}!<br/>
-        <button onclick="location.href='/members';">Go to Members Area</button>
-        <button onclick="location.href='/logout';">Logout</button>
-        `);
+        res.redirect("/login");
     }
+}
+
+function adminAuthorization(req, res, next) {
+    if (req.session.userType == "admin") {
+        next();
+    } else {
+        res.status(403);
+        res.render("errorMessage", {error: "Not Authorized"});
+        return;
+    }
+}
+
+app.use("/", (req, res, next) => {
+    app.locals.navLinks = navLinks;
+    app.locals.currentURL = url.parse(req.url).pathname;
 });
 
-app.get('/nosql-injection', async (req, res) => {
+app.get("/", async (req, res) => {
+    res.render("index", {authenticated: req.session.authenticated, name: req.session.name, navLinks: navLinks});
+});
+
+app.get("/nosql-injection", async (req, res) => {
 	var email = req.query.email;
 
 	if (!email) {
@@ -76,41 +96,24 @@ app.get('/nosql-injection', async (req, res) => {
 	   console.log(validationResult.error);
 	   res.send("<h1 style='color:darkred;'>A NoSQL injection attack was detected!!</h1>");
 	   return;
-	}	
+	}
 
-	const result = await userCollection.find({email: email}).project({email: 1, name: 1, password: 1, _id: 1}).toArray();
+	const result = await userCollection.find({email: email}).project({email: 1, name: 1, userType: 1, password: 1, _id: 1}).toArray();
 	console.log(result);
 
-    res.redirect("/members");
+    res.redirect("/cats");
 });
 
-app.get('/signup', (req, res) => {
-    res.send(`
-    Sign Up:
-    <form action='/submitUser' method='post'>
-    <input name='name' type='text' placeholder='name'><br/>
-    <input name='email' type='email' placeholder='email'><br/>
-    <input name='password' type='password' placeholder='password'><br/>
-    <br/>
-    <button>Submit</button>
-    </form>
-    `);
+app.get("/signup", (req, res) => {
+    res.render("signup");
 });
 
-app.get('/login', (req, res) => {
-    res.send(`
-    Log In:
-    <form action='/loggingin' method='post'><br/>
-    <input name='email' type='email' placeholder='email'><br/>
-    <input name='password' type='password' placeholder='password'><br/>
-    <br/>
-    <button>Submit</button>
-    </form>
-    `);
+app.get("/login", (req, res) => {
+    res.render("login");
 });
 
 // create account
-app.post('/submitUser', async (req, res) => {
+app.post("/submitUser", async (req, res) => {
     var name = req.body.name;
     var email = req.body.email;
     var password = req.body.password;
@@ -148,18 +151,19 @@ app.post('/submitUser', async (req, res) => {
     
     var hashedPassword = await bcrypt.hash(password, saltRounds);
 	
-	await userCollection.insertOne({email: email, name: name, password: hashedPassword});
+	await userCollection.insertOne({email: email, name: name, userType: "user", password: hashedPassword});
 	console.log("Inserted user");
 
     req.session.authenticated = true;
     req.session.email = email;
     req.session.name = name;
+    req.session.userType = "user";
     req.session.cookie.maxAge = expireTime;
 
-    res.redirect("/members");
+    res.redirect("/cats");
 });
 
-app.post('/loggingin', async (req, res) => {
+app.post("/loggingin", async (req, res) => {
     var email = req.body.email;
     var password = req.body.password;
 
@@ -171,7 +175,7 @@ app.post('/loggingin', async (req, res) => {
 	   return;
 	}
 
-	const result = await userCollection.find({email: email}).project({email: 1, name: 1, password: 1, _id: 1}).toArray();
+	const result = await userCollection.find({email: email}).project({email: 1, name: 1, userType: 1, password: 1, _id: 1}).toArray();
 
 	console.log(result);
 	if (result.length != 1) {
@@ -188,9 +192,10 @@ app.post('/loggingin', async (req, res) => {
 		req.session.authenticated = true;
 		req.session.email = result[0].email;
 		req.session.name = result[0].name;
+        req.session.userType = result[0].userType;
 		req.session.cookie.maxAge = expireTime;
 
-		res.redirect('/members');
+		res.redirect('/cats');
 		return;
 	} else {
 		console.log("incorrect password");
@@ -203,32 +208,33 @@ app.post('/loggingin', async (req, res) => {
 	}
 });
 
-app.get('/members', (req, res) => {
-    if (req.session.authenticated) {
-        let randNum = Math.floor(Math.random() * 3); // random num from 0 to 2
-        let images = ["pearl.png", "socks.gif", "marble.jpeg"];
-        let randImg = images[randNum];
-
-        res.send(`
-        <h1>Hello, ${req.session.name}.</h1><br/>
-        <img src="/${randImg}" alt="">
-        <button onclick="location.href='/logout';">Sign out</button>
-        `)
-    } else {
-        res.redirect("/");
-    }
+app.get("/cats", sessionValidation, (req, res) => {
+    res.render("cats");
 });
 
-app.get('/logout', (req, res) => {
+app.get("/logout", (req, res) => {
 	req.session.destroy();
     res.redirect("/");
+});
+
+app.get("/admin", sessionValidation, adminAuthorization, async (req, res) => {
+    const result = await userCollection.find().project({email: 1, name: 1, userType: 1, _id: 1});
+    res.render("admin", {users: result});
+});
+
+app.get("/promoteUser", adminAuthorization, (req, res) => {
+    userCollection.updateOne({email: req.query.email}, {$set: {userType: "admin"}});
+});
+
+app.get("/demoteUser", adminAuthorization, (req, res) => {
+    userCollection.updateOne({email: req.query.email}, {$set: {userType: "user"}});
 });
 
 app.use(express.static(__dirname + "/public"));
 
 app.get("*", (req, res) => {
 	res.status(404);
-	res.send("Page not found - 404");
+	res.render("404");
 })
 
 app.listen(port, () => {
