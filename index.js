@@ -64,7 +64,7 @@ function sessionValidation(req, res, next) {
 }
 
 function adminAuthorization(req, res, next) {
-    if (req.session.userType == "admin") {
+    if (req.session.user_type == "admin") {
         next();
     } else {
         res.status(403);
@@ -99,7 +99,7 @@ app.get("/nosql-injection", async (req, res) => {
 	   return;
 	}
 
-	const result = await userCollection.find({email: email}).project({email: 1, name: 1, userType: 1, password: 1, _id: 1}).toArray();
+	const result = await userCollection.find({email: email}).project({email: 1, name: 1, user_type: 1, password: 1, _id: 1}).toArray();
 	console.log(result);
 
     res.redirect("/cats");
@@ -148,13 +148,13 @@ app.post("/submitUser", async (req, res) => {
     
     var hashedPassword = await bcrypt.hash(password, saltRounds);
 	
-	await userCollection.insertOne({email: email, name: name, userType: "user", password: hashedPassword});
+	await userCollection.insertOne({email: email, name: name, user_type: "user", password: hashedPassword});
 	console.log("Inserted user");
 
     req.session.authenticated = true;
     req.session.email = email;
     req.session.name = name;
-    req.session.userType = "user";
+    req.session.user_type = "user";
     req.session.cookie.maxAge = expireTime;
 
     res.redirect("/cats");
@@ -172,7 +172,7 @@ app.post("/loggingin", async (req, res) => {
 	   return;
 	}
 
-	const result = await userCollection.find({email: email}).project({email: 1, name: 1, userType: 1, password: 1, _id: 1}).toArray();
+	const result = await userCollection.find({email: email}).project({email: 1, name: 1, user_type: 1, password: 1, _id: 1}).toArray();
 
 	console.log(result);
 	if (result.length != 1) {
@@ -185,7 +185,7 @@ app.post("/loggingin", async (req, res) => {
 		req.session.authenticated = true;
 		req.session.email = result[0].email;
 		req.session.name = result[0].name;
-        req.session.userType = result[0].userType;
+        req.session.user_type = result[0].user_type;
 		req.session.cookie.maxAge = expireTime;
 
 		res.redirect('/cats');
@@ -207,22 +207,22 @@ app.get("/logout", (req, res) => {
 });
 
 app.get("/admin", sessionValidation, adminAuthorization, async (req, res) => {
-    const result = await userCollection.find().project({email: 1, name: 1, userType: 1, _id: 1}).toArray();
+    const result = await userCollection.find().project({email: 1, name: 1, user_type: 1, _id: 1}).toArray();
     res.render("admin", {users: result});
 });
 
 app.get("/promoteUser", adminAuthorization, (req, res) => {
-    userCollection.updateOne({email: req.query.email}, {$set: {userType: "admin"}});
+    userCollection.updateOne({email: req.query.email}, {$set: {user_type: "admin"}});
     if (req.session.email == req.query.email) {
-        req.session.userType = "admin";
+        req.session.user_type = "admin";
     }
     res.redirect("/admin");
 });
 
 app.get("/demoteUser", adminAuthorization, (req, res) => {
-    userCollection.updateOne({email: req.query.email}, {$set: {userType: "user"}});
+    userCollection.updateOne({email: req.query.email}, {$set: {user_type: "user"}});
     if (req.session.email == req.query.email) {
-        req.session.userType = "user";
+        req.session.user_type = "user";
     }
     res.redirect("/admin");
 });
